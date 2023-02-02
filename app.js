@@ -45,3 +45,69 @@ app.post("/movies/", async (request, response) => {
   const dbResponse = await database.run(addMovieQuery);
   response.send("Movie Successfully Added");
 });
+
+//GET movie based on movie_id
+app.get("/movies/:movieId/", async (request, response) => {
+  const { movieId } = request.params;
+  //console.log(movieId);
+  const getMovieByIdQuery = `
+        SELECT * FROM movie
+        WHERE movie_id= ${movieId};
+    `;
+  const movie = await database.get(getMovieByIdQuery);
+  //console.log(movie);
+  response.send(movie);
+});
+
+//updateDetails
+app.put("/movies/:movieId/", async (request, response) => {
+  const { movieId } = request.params;
+  console.log(movieId);
+  const movieDetails = request.body;
+  const { directorId, movieName, leadActor } = movieDetails;
+  const updateMovieDetailsQuery = `
+        UPDATE movie
+        SET 
+        director_id=${directorId},
+        movie_name='${movieName}',
+        lead_actor='${leadActor}'
+        WHERE movie_id=${movieId};
+
+    `;
+  await database.run(updateMovieDetailsQuery);
+  response.send("Movie Details Updated");
+});
+
+//DELETE movie
+app.delete("/movies/:movieId/", async (request, response) => {
+  const { movieId } = request.params;
+  const deleteMovieQuery = `
+        DELETE FROM movie
+        WHERE movie_id=${movieId};
+    `;
+  await database.run(deleteMovieQuery);
+  response.send("Movie Removed");
+});
+
+//GET Directors
+app.get("/directors/", async (request, response) => {
+  const directorDetailsQuery = `
+        SELECT * FROM director
+        ORDER BY director_id;
+    `;
+  const directorsArray = await database.all(directorDetailsQuery);
+  response.send(directorsArray);
+});
+
+//GET movieNames by Directors
+app.get("/directors/:directorId/movies", async (request, response) => {
+  const { directorId } = request.params;
+  const getMovieNamesQuery = `
+        SELECT movie_name FROM movie
+        WHERE director_id=${directorId};
+    `;
+  const movieNamesArray = await database.all(getMovieNamesQuery);
+  response.send(movieNamesArray);
+});
+
+module.exports = app;
