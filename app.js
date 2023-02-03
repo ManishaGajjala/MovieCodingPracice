@@ -19,6 +19,12 @@ const initializeDbAndServer = async () => {
 };
 initializeDbAndServer();
 
+const convertDbToResponseObjAPI1 = (dbObj) => {
+  return {
+    movieName: dbObj.movie_name,
+  };
+};
+
 //GET movies API
 app.get("/movies/", async (request, response) => {
   const getMoviesQuery = `
@@ -27,7 +33,9 @@ app.get("/movies/", async (request, response) => {
     `;
   const movieArray = await database.all(getMoviesQuery);
   //console.log(movieArray);
-  response.send(movieArray);
+  response.send(
+    movieArray.map((eachMovie) => convertDbToResponseObjAPI1(eachMovie))
+  );
 });
 
 //POST Movie
@@ -47,6 +55,14 @@ app.post("/movies/", async (request, response) => {
 });
 
 //GET movie based on movie_id
+const convertAPI2 = (dbObj) => {
+  return {
+    movieId: dbObj.movie_id,
+    directorId: dbObj.director_id,
+    movieName: dbObj.movie_name,
+    leadActor: dbObj.lead_actor,
+  };
+};
 app.get("/movies/:movieId/", async (request, response) => {
   const { movieId } = request.params;
   //console.log(movieId);
@@ -56,7 +72,7 @@ app.get("/movies/:movieId/", async (request, response) => {
     `;
   const movie = await database.get(getMovieByIdQuery);
   //console.log(movie);
-  response.send(movie);
+  response.send(convertAPI2(movie));
 });
 
 //updateDetails
@@ -90,13 +106,20 @@ app.delete("/movies/:movieId/", async (request, response) => {
 });
 
 //GET Directors
+
+const convertAPI3 = (dbObj) => {
+  return {
+    directorId: dbObj.director_id,
+    directorName: dbObj.director_name,
+  };
+};
 app.get("/directors/", async (request, response) => {
   const directorDetailsQuery = `
         SELECT * FROM director
         ORDER BY director_id;
     `;
   const directorsArray = await database.all(directorDetailsQuery);
-  response.send(directorsArray);
+  response.send(directorsArray.map((each) => convertAPI3(each)));
 });
 
 //GET movieNames by Directors
@@ -107,7 +130,10 @@ app.get("/directors/:directorId/movies", async (request, response) => {
         WHERE director_id=${directorId};
     `;
   const movieNamesArray = await database.all(getMovieNamesQuery);
-  response.send(movieNamesArray);
+  response.send(
+    movieNamesArray.map((each) => convertDbToResponseObjAPI1(each))
+  );
 });
 
 module.exports = app;
+//end
